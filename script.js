@@ -1,89 +1,123 @@
-const wrapper = document.querySelector(".wrapper"),
-inputPart = document.querySelector(".input-part"),
-infoTxt = inputPart.querySelector(".info-txt"),
-inputField = inputPart.querySelector("input"),
-locationBtn = inputPart.querySelector("button"),
-weatherPart = wrapper.querySelector(".weather-part"),
-wIcon = weatherPart.querySelector("img"),
-arrowBack = wrapper.querySelector("header i");
-
-let api;
-
-inputField.addEventListener("keyup", e =>{
-    if(e.key == "Enter" && inputField.value != ""){
-        requestApi(inputField.value);
-    }
-});
-
-locationBtn.addEventListener("click", () =>{
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(onSuccess, onError);
-    }else{
-        alert("Your browser not support geolocation api");
-    }
-});
-
-function requestApi(city){
-    api = `https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m`;
-    fetchData();
-}
-
-function onSuccess(position){
-    const {latitude, longitude} = position.coords;
-    api = `https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m`;
-    fetchData();
-}
-
-function onError(error){
-    infoTxt.innerText = error.message;
-    infoTxt.classList.add("error");
-}
-
-function fetchData(){
-    infoTxt.innerText = "Getting weather details...";
-    infoTxt.classList.add("pending");
-    fetch(api).then(res => res.json()).then(result => weatherDetails(result)).catch(() =>{
-        infoTxt.innerText = "Something went wrong";
-        infoTxt.classList.replace("pending", "error");
+$(function(){
+    let input = $('#city'),
+        inpVal = input.val();
+    
+    $('.select').on('change', function(){
+      input.val(inpVal + $(this).val());
     });
-}
-
-function weatherDetails(info){
-    if(info.cod == "404"){
-        infoTxt.classList.replace("pending", "error");
-        infoTxt.innerText = `${inputField.value} isn't a valid city name`;
-    }else{
-        const city = info.name;
-        const country = info.sys.country;
-        const {description, id} = info.weather[0];
-        const {temp, feels_like, humidity} = info.main;
-
-        if(id == 800){
-            wIcon.src = "icons/clear.svg";
-        }else if(id >= 200 && id <= 232){
-            wIcon.src = "icons/storm.svg";  
-        }else if(id >= 600 && id <= 622){
-            wIcon.src = "icons/snow.svg";
-        }else if(id >= 701 && id <= 781){
-            wIcon.src = "icons/haze.svg";
-        }else if(id >= 801 && id <= 804){
-            wIcon.src = "icons/cloud.svg";
-        }else if((id >= 500 && id <= 531) || (id >= 300 && id <= 321)){
-            wIcon.src = "icons/rain.svg";
-        }
-        
-        weatherPart.querySelector(".temp .numb").innerText = Math.floor(temp);
-        weatherPart.querySelector(".weather").innerText = description;
-        weatherPart.querySelector(".location span").innerText = `${city}, ${country}`;
-        weatherPart.querySelector(".temp .numb-2").innerText = Math.floor(feels_like);
-        weatherPart.querySelector(".humidity span").innerText = `${humidity}%`;
-        infoTxt.classList.remove("pending", "error");
-        infoTxt.innerText = "";
-        inputField.value = "";
-        wrapper.classList.add("active");
-    }
-}
-
-arrowBack.addEventListener("click", ()=>{
-    wrapper.classList.remove("active");
-});
+  });
+  
+  $('#cityB').on('click', function(){
+      $('#tablo').css('display','flex');
+              
+      var city=$('#city').val();
+    //Здесь вам нужно вставить свой бесплатный ключ
+      var apiURI2 = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=f3c621a341f0776d73b925b3d5881088`;
+          console.log("success getWeather2");
+          console.log(apiURI2);
+          $.ajax({
+            url: apiURI2,
+            dataType: "jsonp",
+            type: "GET",
+            async: "true",		 
+            timeout : 500,
+                      success : function(data) {
+                          console.log("Success");
+                      },
+                      error : function(e) {
+                          console.log("Error");
+                          $('#cityC').html('<p style="color:red";>ERROR</p><p style="color:#bef7f1";>Проверьте корректность названия</p>');
+                          $('#tablo').css('display','none');
+                      },
+                      done : function(e) {
+                          console.log("DONE");
+                      },  
+          }).done(dataHandler3);
+      
+  $('#cityC').text('в' + ' ' + city);	 
+  function dataHandler3(data) {
+      dataString = JSON.stringify(data);
+      var now = new Date();
+      let h = now.getHours();
+      var num = 8-(Math.floor(h/3));
+  //завтра
+          document.getElementById("demo6").innerHTML = data.list[num+3].dt_txt;
+          document.getElementById("demo4").innerHTML = "Макс." + " " + Math.floor((data.list[num+3].main["temp"])-273,15)+"°C";
+          document.getElementById("demo7").innerHTML = data.list[num].dt_txt;
+          document.getElementById("demo5").innerHTML = "Мин." +  " " + Math.floor((data.list[num].main["temp"])-273,15)+"°C";
+          var imgURL = "https://openweathermap.org/img/w/" + data.list[num+3].weather[0].icon + ".png";
+          $("#tmp4").attr("src", imgURL);
+  //послезавтра
+          document.getElementById("demo8").innerHTML = data.list[num+11].dt_txt;
+          document.getElementById("demo9").innerHTML = "Макс. " + " " + Math.floor((data.list[num+11].main["temp"])-273,15)+"°C";
+          document.getElementById("demo10").innerHTML = data.list[num+8].dt_txt;
+          document.getElementById("demo11").innerHTML = "Мин." +  " " + Math.floor((data.list[num+9].main["temp"])-273,15)+"°C";
+          var imgURL = "https://openweathermap.org/img/w/" + data.list[num+11].weather[0].icon + ".png";
+          $("#tmp5").attr("src", imgURL);
+  //после-послезавтра
+          document.getElementById("demo12").innerHTML = data.list[num+19].dt_txt;
+          document.getElementById("demo13").innerHTML = "Макс." + " " + Math.floor((data.list[num+19].main["temp"])-273,15)+"°C";
+          document.getElementById("demo14").innerHTML = data.list[num+16].dt_txt;
+          document.getElementById("demo15").innerHTML = "Мин." +  " " + Math.floor((data.list[num+17].main["temp"])-273,15)+"°C";
+          var imgURL = "https://openweathermap.org/img/w/" + data.list[num+19].weather[0].icon + ".png";
+          $("#tmp6").attr("src", imgURL);		
+  //после-после-послезавтра	
+          document.getElementById("demo16").innerHTML = data.list[num+27].dt_txt;
+          document.getElementById("demo17").innerHTML = "Макс." + " " + Math.floor((data.list[num+27].main["temp"])-273,15)+"°C";
+          document.getElementById("demo18").innerHTML = data.list[num+24].dt_txt;
+          document.getElementById("demo19").innerHTML = "Мин." +  " " + Math.floor((data.list[num+25].main["temp"])-273,15)+"°C";
+          var imgURL = "https://openweathermap.org/img/w/" + data.list[num+27].weather[0].icon + ".png";
+          $("#tmp7").attr("src", imgURL);		
+                  
+     }
+   
+     });
+   //Показ дни недели 
+    function showDateTime() {
+                  
+                  
+                  var d = new Date();
+                  var n1, n2, n3, n4, n5;
+                  var weekday = new Array(7);
+                      weekday[0] = "Воскресенье";
+                      weekday[1] = "Понедельник";
+                      weekday[2] = "Вторник";
+                      weekday[3] = "Среда";
+                      weekday[4] = "Четверг";
+                      weekday[5] = "Пятница";
+                      weekday[6] = "Суббота";
+                       
+                       if(d.getDay() >= 3){
+                             n1 = weekday[(d.getDay()+1)];
+                             n2 = weekday[(d.getDay()+2)];
+                             n3 = weekday[(d.getDay()+3)];
+                             n4 = weekday[7-(d.getDay()+4)];} if(d.getDay() >= 4)
+                           {
+                             n1 = weekday[(d.getDay()+1)];
+                             n2 = weekday[(d.getDay()+2)];
+                             n3 = weekday[7-(d.getDay()+3)];
+                             n4 = weekday[9-(d.getDay()+4)];} if(d.getDay() >= 5)
+                           {
+                             n1 = weekday[(d.getDay()+1)];
+                             n2 = weekday[7-(d.getDay()+2)];
+                             n3 = weekday[9-(d.getDay()+3)];
+                             n4 = weekday[11-(d.getDay()+4)];} if(d.getDay() >= 6)
+                           {
+                             n1 = weekday[7-(d.getDay()+1)];
+                             n2 = weekday[9-(d.getDay()+2)];
+                             n3 = weekday[11-(d.getDay()+3)];
+                             n4 = weekday[13-(d.getDay()+4)];}  if(d.getDay() < 3) 
+                           {
+                             n1 = weekday[(d.getDay()+1)];
+                             n2 = weekday[(d.getDay()+2)];
+                             n3 = weekday[(d.getDay()+3)];
+                             n4 = weekday[(d.getDay()+4)];
+                            
+                           }
+                          
+                                  document.getElementById("day1").innerHTML = n1;
+                                  document.getElementById("day2").innerHTML = n2;
+                                  document.getElementById("day3").innerHTML = n3;
+                                  document.getElementById("day4").innerHTML = n4;								
+              }
+                  showDateTime(); 
